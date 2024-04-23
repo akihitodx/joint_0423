@@ -10,7 +10,7 @@ using namespace std;
 
 vector<vector<int>> midNode;
 vector<vector<Tag3>> joint_group;
-vector<pair<int,int>> single_pair;
+vector<int> single_pair;
 unordered_map<int,vector<int>> group_name_map;
 vector<int> single_pair_name;
 int cutStep;
@@ -38,8 +38,8 @@ int main() {
     thrust::device_vector<int> dev_query_adj(query->q_h_adj);
     thrust::device_vector<int> dev_query_degree(query->q_h_degree);
 
-//    thrust::device_vector<int> dev_single_pair_name(single_pair_name);
-//    thrust::device_vector<int> dev_single_pair(single_pair);
+    thrust::device_vector<int> dev_single_pair_name(single_pair_name);
+    thrust::device_vector<int> dev_single_pair(single_pair);
 
     //index
     Tag5 *d_index, *h_index;
@@ -82,17 +82,27 @@ int main() {
 //    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
 //    print_h_index(h_index,data->v_num);
 
-//    init_edge<<<grid_2D,block_2D>>>(d_index,pitch,thrust::raw_pointer_cast(dev_single_pair.data()),
-//                                    thrust::raw_pointer_cast(dev_data_label.data()),
-//                                    thrust::raw_pointer_cast(dev_data_label.data()),
-//                                    thrust::raw_pointer_cast(dev_data_label.data()),
-//                                    thrust::raw_pointer_cast(dev_data_adj.data()),
-//                                    thrust::raw_pointer_cast(dev_single_pair_name.data()),data->v_num,(int)single_pair_name.size());
-//
-//    //    test
+
+
+    grid_2D = dim3 ((data->v_num/32)+1 , (single_pair_name.size()/32)+1);
+    init_edge<<<grid_2D,block_2D>>>(d_index,pitch,thrust::raw_pointer_cast(dev_single_pair.data()),
+                                    thrust::raw_pointer_cast(dev_data_label.data()),
+                                    thrust::raw_pointer_cast(dev_data_node.data()),
+                                    thrust::raw_pointer_cast(dev_data_degree.data()),
+                                    thrust::raw_pointer_cast(dev_data_adj.data()),
+                                    thrust::raw_pointer_cast(dev_single_pair_name.data()),data->v_num,(int)single_pair_name.size());
+
+    cudaDeviceSynchronize();
+    //    test
+    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+    print_h_index(h_index,data->v_num);
+
+
+
+//    add_one<<<1,13>>>(d_index,pitch,tag,11,data->v_num);
+//    cudaDeviceSynchronize();
 //    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
 //    print_h_index(h_index,data->v_num);
-
 
     return 0;
 }

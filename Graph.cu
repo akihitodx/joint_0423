@@ -380,7 +380,8 @@ bool Graph::calcLevelId() {
         }else{
             another = left.originalId[0];
         }
-        single_pair.emplace_back(get,another);
+        single_pair.push_back(get);
+        single_pair.push_back(another);
         single_pair_name.push_back(name_l);
     }
 
@@ -395,7 +396,8 @@ bool Graph::calcLevelId() {
         }else{
             another = right.originalId[0];
         }
-        single_pair.emplace_back(get,another);
+        single_pair.push_back(get);
+        single_pair.push_back(another);
         single_pair_name.push_back(name_r);
     }
     if (cutStep < count) {

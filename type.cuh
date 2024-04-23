@@ -6,7 +6,7 @@
 #define JOINT_0419_TYPE_CUH
 
 #define wrap_Size 128
-#define N_size 5
+#define N_size 20
 #define MAX_query_Size 32
 
 struct Tag5{

@@ -155,22 +155,26 @@ __global__ void init_edge(Tag5* index,size_t pitch,
         int node_second = query_edge_pair[2* tid_query + 1];
         bool flag = false;
         Tag5 *row = (Tag5*)((char*)index + pitch * tid_data);
-        for(int i = 1 ; i <= row[0].data[2]; ++i){
-            if(row[i].data[0] == 0 &&row[i].data[4] == node_first){
+        for(int i = 1 ; i <= row[0].data[1]; ++i){
+            if(row[i].data[0] == 0 && row[i].data[4] == node_first){
                 flag = true;
                 break;
             }
         }
         if(flag){
+//            printf("%d--%d == %d %d\n",tid_data,tid_query, node_first, node_second);
             for(int node = data_node[tid_data]; node <data_node[tid_data] + data_degree[tid_data]; ++node){
+//                printf("%d, %d ---%d\n",tid_data,node,data_node[tid_data] + data_degree[tid_data]);
                 int adj_node = data_adj[node];
+//                printf("%d--%d == %d %d ---%d\n",tid_data,tid_query, node_first, node_second ,adj_node);
                 Tag5 *row_adj = (Tag5*)((char*)index + pitch * adj_node);
-                for(int i = 1 ; i<= row[0].data[2]; ++i){
+                for(int i = 1 ; i<= row_adj[0].data[1]; ++i){
                     if(row_adj[i].data[0] == 0 && row_adj[i].data[4] == node_second){
                         Tag5 tag_first = {single_group_name[tid_query],tid_data,i-1,adj_node,node_first};
                         Tag5 tag_second = {single_group_name[tid_query],tid_data,i-1,tid_data,node_second};
+                        printf("add tag %d, %d\n",tid_data,adj_node);
                         add_tag(tag_first,index,row,tid_data,data_v_num,pitch,0);
-                        add_tag(tag_second,index,row_adj,tid_data,data_v_num,pitch,0);
+                        add_tag(tag_second,index,row_adj,adj_node,data_v_num,pitch,0);
                         break;
                     }
                 }
