@@ -6,7 +6,7 @@
 #define JOINT_0419_TYPE_CUH
 
 #define wrap_Size 128
-#define N_size 20
+#define N_size 3
 #define MAX_query_Size 32
 
 struct Tag5{
@@ -15,5 +15,7 @@ struct Tag5{
 struct Tag3{
     int data[3];
 };
-
+struct Tag2{
+    int data[2];
+};
 #endif //JOINT_0419_TYPE_CUH

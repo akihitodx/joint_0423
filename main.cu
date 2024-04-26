@@ -16,6 +16,15 @@ vector<int> single_pair_name;
 int cutStep;
 
 int main() {
+//    int device = 0;  // 要查询的设备索引
+//    int value;
+//
+//    cudaDeviceProp props;
+//    cudaGetDeviceProperties(&props, device);
+//    cudaDeviceGetAttribute(&value, cudaDevAttrMaxSharedMemoryPerBlock, device);
+//
+//    std::cout << "Max shared memory per block: " << value << " bytes" << std::endl;
+
     string query_path = "../test/query";
     string data_path = "../test/data";
     auto *query = new Graph();
@@ -72,15 +81,18 @@ int main() {
     print_h_index(h_index,data->v_num);
 
 
-//    cout<<"==============="<<endl;
-//    d_print<<<(data->v_num/32)+1,32>>>(d_index,pitch,data->v_num,N_size);
-//    cudaDeviceSynchronize();
-//
-//    Tag5 tag = {999,999,999,999,999};
-//    add_one<<<1,13>>>(d_index,pitch,tag,11,data->v_num);
-//    cudaDeviceSynchronize();
-//    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
-//    print_h_index(h_index,data->v_num);
+    cout<<"==============="<<endl;
+    d_print<<<(data->v_num/32)+1,32>>>(d_index,pitch,data->v_num,N_size);
+    cudaDeviceSynchronize();
+
+    Tag5 tag = {999,999,999,999,999};
+    add_one<<<1,13>>>(d_index,pitch,tag,11,data->v_num);
+    cudaDeviceSynchronize();
+    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+    print_h_index(h_index,data->v_num);
+
+    return 0;
+//    Tag3 = {, 4 ,};
 
 
 
