@@ -25,8 +25,10 @@ int main() {
 //
 //    std::cout << "Max shared memory per block: " << value << " bytes" << std::endl;
 
-    string query_path = "../test/query";
-    string data_path = "../test/data";
+//    string query_path = "../test/simple_query";
+//    string data_path = "../test/simple_data";
+    string query_path = "../test/y4_1.graph";
+    string data_path = "../test/yeast.graph";
     auto *query = new Graph();
     auto *data = new Graph();
     query->ReadInFile(query_path,1);
@@ -78,8 +80,8 @@ int main() {
     cudaDeviceSynchronize();
 
 //    test
-    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
-    print_h_index(h_index,data->v_num);
+//    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+//    print_h_index(h_index,data->v_num);
 
 
 
@@ -110,8 +112,8 @@ int main() {
 
     cudaDeviceSynchronize();
     //    test
-    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
-    print_h_index(h_index,data->v_num);
+//    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+//    print_h_index(h_index,data->v_num);
 
     //multi joint
     auto del_edge = query->single_edge;
@@ -136,18 +138,18 @@ int main() {
                                                    thrust::raw_pointer_cast(dev_data_adj.data()),
                                                    data->v_num,query->v_num,(int)h_del_edge.size());
             cudaDeviceSynchronize();
-            cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
-            print_h_index(h_index,data->v_num);
-
-            int a = 0;
+//            cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+//            print_h_index(h_index,data->v_num);
+//
+//            int a = 0;
 
         }
         cudaDeviceSynchronize();
     }
     //    test
-    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
-    print_h_index(h_index,data->v_num);
-
+//    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+//    print_h_index(h_index,data->v_num);
+//
     thrust::device_vector<int> sum_res(data->v_num);
     sum_count<<<data->v_num/BLOCK + 1,BLOCK>>>(d_index,pitch,1,data->v_num,thrust::raw_pointer_cast(sum_res.data()));
     cudaDeviceSynchronize();
