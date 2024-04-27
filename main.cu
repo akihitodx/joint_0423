@@ -27,7 +27,7 @@ int main() {
 
 //    string query_path = "../test/simple_query";
 //    string data_path = "../test/simple_data";
-    string query_path = "../test/y4_1.graph";
+    string query_path = "../test/y16_1.graph";
     string data_path = "../test/yeast.graph";
     auto *query = new Graph();
     auto *data = new Graph();
@@ -141,13 +141,13 @@ int main() {
 //            cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
 //            print_h_index(h_index,data->v_num);
 //
-//            int a = 0;
+             int a = 0;
 
         }
         cudaDeviceSynchronize();
     }
     //    test
-//    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
 //    print_h_index(h_index,data->v_num);
 //
     thrust::device_vector<int> sum_res(data->v_num);
@@ -157,5 +157,10 @@ int main() {
     int ret = thrust::reduce(sum_res.begin(), sum_res.end());
     cout<<"count: "<<ret/query->v_num<<endl;
 
+    int sss = 0;
+    for(int i = 0 ; i <data->v_num; ++i){
+        sss += h_index[i*N_size].data[1];
+    }
+    cout<<"count_tag: "<< sss<<endl;
     return 0;
 }

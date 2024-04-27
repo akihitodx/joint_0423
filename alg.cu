@@ -378,7 +378,7 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                 table[match] = tid;
                 printf("%d before table %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
                 while(next != tid){
-                    printf("%d %d\n",tid,next);
+                    printf("find next %d %d\n",tid,next);
                     Tag5 *row_next = (Tag5*)((char*)index + pitch * next);
                     for(int loc = 1; loc <= row_next[0].data[2]; ++loc){
                         if(row_next[loc].data[0] == group && row_next[loc].data[1] == root && row_next[loc].data[2] == serial){
@@ -436,6 +436,7 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                     }
                 }
                 //init and add new tag
+                printf("%d over del_edge\n",tid);
                 if(flag_after){
                     int n_serial = new_serial++;
                     printf("%d inti add %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
@@ -462,8 +463,12 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                     while (!flag && next_row < data_v_num){
                         flag = add_tag(new_tag,index,row_res,table[slow],data_v_num,pitch,next_row);
                         ++next_row;
+                        printf("%d +++++\n",tid);
+                        if(flag == true) printf("%d true\n",tid);
+                        if(flag == false) printf("%d false\n",tid);
                     }
                 }
+                printf("%d over\n",tid);
             }
         }
     }

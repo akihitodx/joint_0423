@@ -6,7 +6,7 @@
 #define JOINT_0419_TYPE_CUH
 
 #define BLOCK 32
-#define N_size 1000
+#define N_size 2000
 #define MAX_query_Size 32
 
 struct Tag5{
