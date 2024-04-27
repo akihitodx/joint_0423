@@ -16,7 +16,7 @@ using namespace std;
 extern vector<vector<int>> midNode;
 extern vector<vector<Tag4>> joint_group;
 extern vector<int> single_pair;
-extern unordered_map<int,vector<int>> group_name_map;
+extern unordered_map<int,unordered_set<int>> group_name_map;
 extern vector<int> single_pair_name;
 extern int cutStep;
 class Graph{
@@ -34,6 +34,7 @@ public:
     Graph *leftChild;
     Graph *rightChild;
 
+    int group_name=1;
 
     vector<set<int>> adj_vs;
     vector<int> single_edge;

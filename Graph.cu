@@ -347,6 +347,8 @@ bool Graph::calcLevelId() {
     this->leftChild = &left;
     left.father = this;
 
+    left.group_name = ++name;
+
     right.q_h_node.assign(rightQMap.begin(), rightQMap.end());
     right.q_h_label.assign(rightLabelMap.begin(), rightLabelMap.end());
     right.q_h_degree.assign(rightDuMap.begin(), rightDuMap.end());
@@ -354,20 +356,20 @@ bool Graph::calcLevelId() {
     right.originalId.assign(rightOldQMapOri.begin(), rightOldQMapOri.end());
     this->rightChild = &right;
     right.father = this;
+
+    right.group_name = ++name;
     cout << "split over" << endl;
     cout << "left subgraph" << endl;
 
-    int name_f = name;
-    int name_l = ++name;
-    int name_r = ++name;
-    group_name_map[name_l] = left.originalId;
-    group_name_map[name_r] = right.originalId;
+
+    group_name_map[left.group_name].insert(left.originalId.begin(), left.originalId.end());
+    group_name_map[right.group_name].insert(right.originalId.begin(), right.originalId.end());
 
     left.print();
     cout << "right subgraph" << endl;
     right.print();
 
-    joint_group[count].emplace_back(Tag4({name_l,name_r,get,name_f}));
+    joint_group[count].emplace_back(Tag4({left.group_name,right.group_name,get, this->group_name}));
     //如果拆分后的子图节点的个数大于2的话，递归进行下一次分割
     if (left.q_h_node.size() > 2) {
         left.calcLevelId();
@@ -383,7 +385,7 @@ bool Graph::calcLevelId() {
         }
         single_pair.push_back(get);
         single_pair.push_back(another);
-        single_pair_name.push_back(name_l);
+        single_pair_name.push_back(left.group_name);
     }
 
     if (right.q_h_node.size() > 2) {
@@ -399,7 +401,7 @@ bool Graph::calcLevelId() {
         }
         single_pair.push_back(get);
         single_pair.push_back(another);
-        single_pair_name.push_back(name_r);
+        single_pair_name.push_back(right.group_name);
     }
     if (cutStep < count) {
         cutStep = count;

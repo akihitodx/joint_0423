@@ -5,7 +5,7 @@
 #ifndef JOINT_0419_TYPE_CUH
 #define JOINT_0419_TYPE_CUH
 
-#define wrap_Size 128
+#define BLOCK 32
 #define N_size 30
 #define MAX_query_Size 32
 

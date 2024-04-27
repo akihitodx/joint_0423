@@ -35,6 +35,8 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
 
 __device__ bool add_tag(Tag5 tag,Tag5* index,Tag5* row_res,int tid_data,int data_size, size_t pitch,int next);
 
+__global__ void sum_count(Tag5* index,size_t pitch,int label,size_t size,int* can);
+
 __host__ void print_h_index(Tag5* h_index,int data_size);
 
 __global__ void d_print(Tag5* index,size_t pitch,int size,int N);

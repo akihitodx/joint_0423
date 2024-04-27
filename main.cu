@@ -11,7 +11,7 @@ using namespace std;
 vector<vector<int>> midNode;
 vector<vector<Tag4>> joint_group;
 vector<int> single_pair;
-unordered_map<int,vector<int>> group_name_map;
+unordered_map<int,unordered_set<int>> group_name_map;
 vector<int> single_pair_name;
 int cutStep;
 
@@ -33,7 +33,8 @@ int main() {
     data->ReadInFile(data_path,0);
     query->except_ring();
     query->calcLevelId();
-    int name = 0;
+    int name = 1;
+    group_name_map[name].insert(query->originalId.begin(), query->originalId.end());
     query->division(0,name);
     joint_group.resize(cutStep+1);
 
@@ -112,8 +113,47 @@ int main() {
     cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
     print_h_index(h_index,data->v_num);
 
+    //multi joint
+    auto del_edge = query->single_edge;
+    for(int level = (int) joint_group.size()-1; level>=0 ; --level){
+        cout<<"start level" <<level <<endl;
+        for(auto const& info : joint_group[level]){
+            vector<bool> used(del_edge.size(), true);
+            thrust::host_vector<int> h_del_edge;
+            for(int del = 0 ; del < del_edge.size(); del = del + 2){
+                if(!used[del]) continue;
+                if(group_name_map[info.data[3]].count(del_edge[del]) > 0 &&group_name_map[info.data[3]].count(del_edge[del+1]) > 0){
+                    h_del_edge.push_back(del_edge[del]);
+                    h_del_edge.push_back(del_edge[del+1]);
+                    used[del] = false;
+                }
+            }
+            thrust::device_vector<int> d_del_edge = h_del_edge;
+            joint<<<data->v_num/BLOCK + 1,BLOCK>>>(d_index,pitch,info,
+                                                   thrust::raw_pointer_cast(d_del_edge.data()),
+                                                   thrust::raw_pointer_cast(dev_data_node.data()),
+                                                   thrust::raw_pointer_cast(dev_data_degree.data()),
+                                                   thrust::raw_pointer_cast(dev_data_adj.data()),
+                                                   data->v_num,query->v_num,(int)h_del_edge.size());
+            cudaDeviceSynchronize();
+            cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+            print_h_index(h_index,data->v_num);
 
+            int a = 0;
 
+        }
+        cudaDeviceSynchronize();
+    }
+    //    test
+    cudaMemcpy2D(h_index, N_size * sizeof(Tag5), d_index, pitch, N_size * sizeof(Tag5), data->v_num,cudaMemcpyDeviceToHost);
+    print_h_index(h_index,data->v_num);
+
+    thrust::device_vector<int> sum_res(data->v_num);
+    sum_count<<<data->v_num/BLOCK + 1,BLOCK>>>(d_index,pitch,1,data->v_num,thrust::raw_pointer_cast(sum_res.data()));
+    cudaDeviceSynchronize();
+
+    int ret = thrust::reduce(sum_res.begin(), sum_res.end());
+    cout<<"count: "<<ret/query->v_num<<endl;
 
     return 0;
 }

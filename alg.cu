@@ -307,22 +307,22 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                       const int* adj_set,
                       int data_v_num,int query_v_num,int del_edge_size){
     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    if(tid == 10 || tid == 11 || tid == 0){
+    if(tid < data_v_num){
         Tag2 first_set[N_size/2];
         Tag2 second_set[N_size/2];
         int first_count = 0, second_count = 0;
         Tag5 *row = (Tag5*)((char*)index + pitch * tid);
-        for (int i = 1 ; i <= row[0].data[2]; ++i){
+        for (int i = 1 ; i <= row[0].data[1]; ++i){
             printf("%d: %d %d  info %d %d %d\n", tid, row[i].data[0],row[i].data[4],info.data[0],info.data[1],info.data[2]);
             if(row[i].data[0] == info.data[0] && row[i].data[4] == info.data[2]){
                 printf("%d--%d insert first\n",tid,i);
                 first_set[first_count++] = {tid,i};
-                break;
+                continue;
             }
             if(row[i].data[0] == info.data[1] && row[i].data[4] == info.data[2]){
                 printf("%d--%d insert second\n",tid,i);
                 second_set[second_count++] = {tid,i};
-                break;
+                continue;
             }
         }
         if(row[0].data[1] > row[0].data[2]){
@@ -349,10 +349,10 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                 }
             }
         }
-        for(int i = 0 ;i < second_count; ++i){
-            printf("%d %d,%d\n",tid ,second_set[i].data[0],second_set[i].data[1]);
-        }
-
+//        for(int i = 0 ;i < second_count; ++i){
+//            printf("%d %d,%d\n",tid ,second_set[i].data[0],second_set[i].data[1]);
+//        }
+        printf("%d: %d ----- %d\n",tid,first_count,second_count);
         int new_serial = 0;
         for(int i = 0; i < first_count; ++i){
             Tag5 *first_row = (Tag5*)((char*)index + pitch * first_set[i].data[0]);
@@ -360,6 +360,7 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
             for(int j = 0 ; j < second_count; ++j){
                 Tag5 *second_row = (Tag5*)((char*)index + pitch * second_set[j].data[0]);
                 Tag5 second = second_row[second_set[j].data[1]];
+                printf("%d joint %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
 
                 int table[MAX_query_Size] = {-1};
                 int exist_table[MAX_query_Size];
@@ -375,7 +376,9 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                 next = first.data[3];
                 match = first.data[4];
                 table[match] = tid;
+                printf("%d before table %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
                 while(next != tid){
+                    printf("%d %d\n",tid,next);
                     Tag5 *row_next = (Tag5*)((char*)index + pitch * next);
                     for(int loc = 1; loc <= row_next[0].data[2]; ++loc){
                         if(row_next[loc].data[0] == group && row_next[loc].data[1] == root && row_next[loc].data[2] == serial){
@@ -386,13 +389,15 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                         }
                     }
                 }
+                printf("%d over table %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
+
                 group = second.data[0];
                 root = second.data[1];
                 serial = second.data[2];
                 next = second.data[3];
 
                 //unique check
-                bool flag_unique_check = true;
+                bool flag_after = true;
 
                 while(next != tid){
                     Tag5 *row_next = (Tag5*)((char*)index + pitch * next);
@@ -400,7 +405,7 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                         if(row_next[loc].data[0] == group && row_next[loc].data[1] == root && row_next[loc].data[2] == serial){
                             for(int check = 0; check < exist_count; ++check){
                                 if(next == exist_table[check]){
-                                    flag_unique_check = false;
+                                    flag_after = false;
                                     break;
                                 }
                             }
@@ -411,8 +416,9 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                     }
                 }
                 //single edge check
-                bool flag_single_edge_check = false;
-                if(del_edge_size> 0 && flag_unique_check){
+                printf("%d ???\n",tid);
+                if(del_edge_size> 0 && flag_after){
+                    printf("%d single edge check %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
                     for(int d = 0 ; d < del_edge_size; d = d + 2){
                         int node_a = table[del_edge[d]];
                         int node_b = table[del_edge[d+1]];
@@ -423,39 +429,54 @@ __global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                                 break;
                             }
                         }
-                        if(f_temp){
-                           flag_single_edge_check = true;
+                        if(!f_temp){
+                            flag_after = false;
                             break;
                         }
                     }
                 }
                 //init and add new tag
-                int slow = info.data[2];
-                int fast = (info.data[2]+1) % query_v_num;
-                while(fast != info.data[2]){
-                    if(table[fast] != -1){
-                        Tag5 *row_res = (Tag5*)((char*)index + pitch * table[slow]);
-                        Tag5 new_tag = {info.data[3],tid,new_serial++,table[fast],slow};
-                        int next_row = 0;
-                        bool flag = false;
-                        while (!flag && next_row < data_v_num){
-                            flag = add_tag(new_tag,index,row_res,table[slow],data_v_num,pitch,next_row);
-                            ++next_row;
+                if(flag_after){
+                    int n_serial = new_serial++;
+                    printf("%d inti add %d-%d   %d-%d\n",tid,first_set[i].data[0],first_set[i].data[1],second_set[j].data[0],second_set[j].data[1]);
+                    int slow = info.data[2];
+                    int fast = (info.data[2]+1) % query_v_num;
+                    while(fast != info.data[2]){
+                        if(table[fast] != -1){
+                            Tag5 *row_res = (Tag5*)((char*)index + pitch * table[slow]);
+                            Tag5 new_tag = {info.data[3],tid,n_serial,table[fast],slow};
+                            int next_row = 0;
+                            bool flag = false;
+                            while (!flag && next_row < data_v_num){
+                                flag = add_tag(new_tag,index,row_res,table[slow],data_v_num,pitch,next_row);
+                                ++next_row;
+                            }
+                            slow = fast;
                         }
-                        slow = fast;
+                        fast = (fast+1)%query_v_num;
                     }
-                    fast = (fast+1)%query_v_num;
-                }
-                Tag5 *row_res = (Tag5*)((char*)index + pitch * table[slow]);
-                Tag5 new_tag = {info.data[3],tid,new_serial,table[fast],slow};
-                int next_row = 0;
-                bool flag = false;
-                while (!flag && next_row < data_v_num){
-                    flag = add_tag(new_tag,index,row_res,table[slow],data_v_num,pitch,next_row);
-                    ++next_row;
+                    Tag5 *row_res = (Tag5*)((char*)index + pitch * table[slow]);
+                    Tag5 new_tag = {info.data[3],tid,n_serial,table[fast],slow};
+                    int next_row = 0;
+                    bool flag = false;
+                    while (!flag && next_row < data_v_num){
+                        flag = add_tag(new_tag,index,row_res,table[slow],data_v_num,pitch,next_row);
+                        ++next_row;
+                    }
                 }
             }
         }
     }
+}
 
+__global__ void sum_count(Tag5* index,size_t pitch,int label,size_t size,int* can){
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if(tid<size){
+        int count = 0;
+        Tag5 *row_index = (Tag5 *) ((char *) index + pitch * tid);
+        for(int i = 1; i< row_index[0].data[0]; ++i){
+            if(row_index[i].data[0] == label) ++count;
+        }
+        can[tid] = count;
+    }
 }
