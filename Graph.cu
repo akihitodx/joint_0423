@@ -69,7 +69,7 @@ bool Graph::ReadInFile(const std::string &FileName, int flag) {
     }
     cutStep = 0;
     midNode = vector<vector<int>>(q_h_label.size(), vector<int>());
-    joint_group = vector<vector<Tag3>>(q_h_label.size(), vector<Tag3>());
+    joint_group = vector<vector<Tag4>>(q_h_label.size(), vector<Tag4>());
     cout << "read finish" << endl;
     print();
     return true;
@@ -357,6 +357,7 @@ bool Graph::calcLevelId() {
     cout << "split over" << endl;
     cout << "left subgraph" << endl;
 
+    int name_f = name;
     int name_l = ++name;
     int name_r = ++name;
     group_name_map[name_l] = left.originalId;
@@ -366,7 +367,7 @@ bool Graph::calcLevelId() {
     cout << "right subgraph" << endl;
     right.print();
 
-    joint_group[count].emplace_back(Tag3({name_l,name_r,get}));
+    joint_group[count].emplace_back(Tag4({name_l,name_r,get,name_f}));
     //如果拆分后的子图节点的个数大于2的话，递归进行下一次分割
     if (left.q_h_node.size() > 2) {
         left.calcLevelId();

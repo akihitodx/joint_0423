@@ -14,7 +14,7 @@
 using namespace std;
 
 extern vector<vector<int>> midNode;
-extern vector<vector<Tag3>> joint_group;
+extern vector<vector<Tag4>> joint_group;
 extern vector<int> single_pair;
 extern unordered_map<int,vector<int>> group_name_map;
 extern vector<int> single_pair_name;

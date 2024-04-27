@@ -26,12 +26,12 @@ __global__ void data_filter(Tag5* index,
                             int data_size,
                             int query_size);
 
-__global__ void joint(Tag5* index,size_t pitch,Tag3 info,
+__global__ void joint(Tag5* index,size_t pitch,Tag4 info,
                       const int* del_edge,
                       const int* node_set,
                       const int* degree_set,
                       const int* adj_set,
-                      int data_v_num);
+                      int data_v_num, int query_v_num, int del_edge_size);
 
 __device__ bool add_tag(Tag5 tag,Tag5* index,Tag5* row_res,int tid_data,int data_size, size_t pitch,int next);
 
